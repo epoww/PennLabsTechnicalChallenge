@@ -12,6 +12,9 @@
 		13B244C92334685C00E381EE /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 13B244C72334685C00E381EE /* Main.storyboard */; };
 		13B244CB2334685E00E381EE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B244CA2334685E00E381EE /* Assets.xcassets */; };
 		13B244CE2334685E00E381EE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 13B244CC2334685E00E381EE /* LaunchScreen.storyboard */; };
+		13B244D623346D1300E381EE /* shelldon_profile_pic.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 13B244D523346D1300E381EE /* shelldon_profile_pic.jpg */; };
+		13B244D823366FC600E381EE /* TableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B244D723366FC500E381EE /* TableViewCell.swift */; };
+		13B244DA2336701B00E381EE /* Structs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13B244D92336701B00E381EE /* Structs.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,6 +25,9 @@
 		13B244CA2334685E00E381EE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		13B244CD2334685E00E381EE /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		13B244CF2334685E00E381EE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		13B244D523346D1300E381EE /* shelldon_profile_pic.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = shelldon_profile_pic.jpg; sourceTree = "<group>"; };
+		13B244D723366FC500E381EE /* TableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableViewCell.swift; sourceTree = "<group>"; };
+		13B244D92336701B00E381EE /* Structs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Structs.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,10 +62,13 @@
 			children = (
 				13B244C32334685C00E381EE /* AppDelegate.swift */,
 				13B244C52334685C00E381EE /* ViewController.swift */,
+				13B244D723366FC500E381EE /* TableViewCell.swift */,
 				13B244C72334685C00E381EE /* Main.storyboard */,
 				13B244CA2334685E00E381EE /* Assets.xcassets */,
 				13B244CC2334685E00E381EE /* LaunchScreen.storyboard */,
 				13B244CF2334685E00E381EE /* Info.plist */,
+				13B244D523346D1300E381EE /* shelldon_profile_pic.jpg */,
+				13B244D92336701B00E381EE /* Structs.swift */,
 			);
 			path = DiningHalls;
 			sourceTree = "<group>";
@@ -125,6 +134,7 @@
 				13B244CE2334685E00E381EE /* LaunchScreen.storyboard in Resources */,
 				13B244CB2334685E00E381EE /* Assets.xcassets in Resources */,
 				13B244C92334685C00E381EE /* Main.storyboard in Resources */,
+				13B244D623346D1300E381EE /* shelldon_profile_pic.jpg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -135,6 +145,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				13B244DA2336701B00E381EE /* Structs.swift in Sources */,
+				13B244D823366FC600E381EE /* TableViewCell.swift in Sources */,
 				13B244C62334685C00E381EE /* ViewController.swift in Sources */,
 				13B244C42334685C00E381EE /* AppDelegate.swift in Sources */,
 			);
