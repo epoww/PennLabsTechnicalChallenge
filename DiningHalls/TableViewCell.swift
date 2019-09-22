@@ -11,7 +11,12 @@ import UIKit
 class DiningTableViewCell : UITableViewCell {
     
     var img_v: UIImageView!
-    var status_lb: UILabel!
+    var status_lb: UILabel! {
+        didSet {
+            if status_lb.text == "CLOSED" {status_lb.textColor = UIColor.gray}
+            else { status_lb.textColor = UIColor.blue}
+        }
+    }
     var name_lb: UILabel!
     var hours_lb: UILabel!
     

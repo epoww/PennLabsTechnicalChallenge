@@ -11,10 +11,26 @@ import UIKit
 var HEIGHT : CGFloat!
 var WIDTH : CGFloat!
 
-class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, WKNavigationDelegate {
+class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
 
-    var DiningHalls = [DiningPlace]()
-    var RetailDining = [DiningPlace]()
+    var helper = Helper()
+    var networkManager = NetworkManager()
+    
+    var DiningHalls = [DiningPlace]() {
+        didSet {
+            DispatchQueue.main.async {
+                self.tbv.reloadData()
+            }
+        }
+    }
+    
+    var RetailDining = [DiningPlace]() {
+        didSet {
+            DispatchQueue.main.async {
+                self.tbv.reloadData()
+            }
+        }
+    }
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         activityIndicator.stopAnimating()
@@ -30,118 +46,31 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         return RetailDining.count
     }
     
-    func formatTime(open: [Substring], close: [Substring], lb: Bool) -> String {
-        var olb = "a"
-        var clb = "a"
-        
-        var ohour = String(open[0])
-        if (ohour.firstIndex(of: "0") != nil && ohour.firstIndex(of: "0")! == String.Index(encodedOffset: 0)) {
-            ohour.remove(at: ohour.startIndex)
-        }
-        if Int(ohour)! > 12 {
-            ohour = String(Int(ohour)! - 12)
-            olb = "p"
-        }
-        
-        var chour = close[0].replacingOccurrences(of: "0", with: "")
-        if Int(chour)! > 12 {
-            chour = String(Int(chour)! - 12)
-            clb = "p"
-        }
-        
-        let formattedOpen = (ohour + ":" + open[1]).replacingOccurrences(of: ":00", with: "")
-        let formattedClose = (chour + ":" + close[1]).replacingOccurrences(of: ":00", with: "")
-        
-        if lb {
-            return formattedOpen + olb + " - " + formattedClose + clb
-        }
-        return formattedOpen + " - " + formattedClose
-    }
-    
-    func openNow(open: [Substring], close: [Substring]) -> Bool {
-        let date = Date()
-        let components = Calendar.current.dateComponents([.hour, .minute, .second], from: date)
-        let ohour = Int(open[0])!
-        let chour = Int(close[0])!
-        let cminute = Int(close[1])!
-        
-        if (components.hour! < ohour) {
-            return false
-        } else if (ohour == components.hour) {
-            return true
-        } else if (components.hour! < chour) {
-            return true
-        } else if (components.hour! == chour && components.minute! <= cminute) {
-            return true
-        }
-        
-        return false
-    }
-    
-    func getHours(d: DiningPlace, data: [[String: Any]]) -> (String, Bool) {
-        let formattedDate = getDate()
-        
-//        print(d.name!)
-        
-        for day in data {
-            if day["date"] as! String == formattedDate {
-                var s = ""
-                var b = false
-                let intervals = day["meal"]! as! [[String: String]]
-                
-                for i in 0..<intervals.count {
-                    let interval = intervals[i]
-                    let open = interval["open"]!.split(separator: ":")
-                    let close = interval["close"]!.split(separator: ":")
-                    if intervals.count == 1 {
-//                        print("ONE TIME INTERVAL")
-                        s += formatTime(open: open, close: close, lb: true)
-                    } else {
-                        s += formatTime(open: open, close: close, lb: false)
-                    }
-                    if i < intervals.count - 1 { s += "  |  "}
-                    b = b || openNow(open: open, close: close)
-                }
-                
-                return (s, b)
-            }
-        }
-        
-        return ("Closed Today", false)
-    }
-    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let section = indexPath.section
         let diningHall: DiningPlace!
+        
         if section == 0 { diningHall = DiningHalls[indexPath.item] }
         else { diningHall = RetailDining[indexPath.item] }
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "dining cell") as! DiningTableViewCell
-        cell.name_lb.text = diningHall.name
         
+        cell.name_lb.text = diningHall.name
         cell.img_v.backgroundColor = UIColor.lightGray
+        
         if let url = URL(string: diningHall.imageURL) {
-            URLSession.shared.dataTask(with: url) { (data, response, error) in
-                if error != nil {
-                    print("error" + (error?.localizedDescription)!)
-                }
-                
-                if data != nil {
-                    let diningHallPic = UIImage(data: data!)
-                    if diningHallPic != nil {
-                        DispatchQueue.main.async(execute: {
-                            cell.img_v.image = diningHallPic
-                        })
-                    }
-                }
-                
-            }.resume()
+            networkManager.getImage(url: url, completionHandler: {
+                image in
+                DispatchQueue.main.async(execute: {
+                    cell.img_v.image = image
+                })
+            })
         }
         
         var hours = ""
         var open = false
-        (hours, open) = getHours(d: diningHall, data: diningHall.hoursData)
+        (hours, open) = diningHall.getHours(helper: helper)
         cell.hours_lb.text = hours
         
         if open {
@@ -181,14 +110,6 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         return 54
     }
     
-    func getDate() -> String {
-        let date = Date()
-        let format = DateFormatter()
-        format.dateFormat = "yyyy-MM-dd"
-        let formattedDate = format.string(from: date)
-        return formattedDate
-    }
-    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let section = indexPath.section
         let url: URL!
@@ -213,49 +134,24 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         }
 
     }
-    
-    func getData() {
-        let urlString = "http://api.pennlabs.org/dining/venues"
-        let url = URL(string: urlString)!
-        URLSession.shared.dataTask(with: url) { (data, response, error) in
-            if let error = error {
-                print(error)
-                return
-            }
-            
-            let json = try! JSONSerialization.jsonObject(with: data!, options: []) as! [String: Any]
-                if let object = json as? [String: [String: [[String: Any]]]] {
-                    let venues = object["document"]!["venue"]
-                    for venue in venues! {
-                        let name = venue["name"] as! String
-                        var imageURL = ""
-                        if let url = venue["imageUrl"] as? String {
-                            imageURL = url
-                        }
-                        let facilityURL = venue["facilityURL"] as! String
-                        let dateHours = venue["dateHours"] as! [[String: Any]]
-                        let d = DiningPlace(n: name, f: facilityURL, i: imageURL, h: dateHours)
-                        if venue["venueType"] as! String == "residential" {
-                            self.DiningHalls.append(d)
-                        } else {
-                            self.RetailDining.append(d)
-                        }
-                    }
-
-                    DispatchQueue.main.async {
-                        self.tbv.reloadData()
-                    }
-                } else {
-                    print("invalid JSON")
-                }
-            }.resume()
-    }
 
     let tbv = UITableView()
     let webv = WKWebView()
-    var activityIndicator: UIActivityIndicatorView!
+    let date_lb = UILabel()
+    var activityIndicator = UIActivityIndicatorView()
     var close_btn = UIButton()
-    var selectedIndexPath: IndexPath!
+    var selectedIndexPath = IndexPath()
+    
+    override func viewWillAppear(_ animated: Bool) {
+        date_lb.text = helper.getDateWithDay()
+        
+        if let url = URL(string: "http://api.pennlabs.org/dining/venues") {
+            networkManager.getData(url: url, completionHandler: {
+                (diningHall, retailDining) in
+                (self.DiningHalls, self.RetailDining) = (diningHall, retailDining)
+            })
+        }
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -264,33 +160,18 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         WIDTH = self.view.frame.width
         
         tbv.frame = CGRect(x: 0, y: 75, width: WIDTH, height: HEIGHT - 75)
+        tbv.separatorStyle = .none
         tbv.register(DiningTableViewCell.self, forCellReuseIdentifier: "dining cell")
-        
         tbv.dataSource = self
         tbv.delegate = self
-        tbv.separatorStyle = .none
-        
         self.view.addSubview(tbv)
         
-        let date_lb = UILabel()
         date_lb.frame = CGRect(x: 14, y: 63, width: 200, height: 15)
         date_lb.font = UIFont(name: "Arial-BoldMT", size: 12)
         date_lb.textColor = UIColor.greyishTwo
-        
-        let formatter  = DateFormatter()
-        formatter.dateFormat = "MMMM"
-        let todayDate = formatter.string(from: Date())
-        let weekDay = formatter.weekdaySymbols[Calendar.current.component(.weekday, from: Date())]
-        let day = Calendar.current.component(.day, from: Date())
-        let formattedDate = weekDay + ", " + todayDate + " " + String(day)
-        date_lb.text = formattedDate.uppercased()
         self.view.addSubview(date_lb)
         
-        getData()
-        
-        webv.navigationDelegate = self
         webv.frame = CGRect(x: 0, y: 0, width: WIDTH, height: HEIGHT)
-        webv.allowsBackForwardNavigationGestures = true
         
         activityIndicator = UIActivityIndicatorView(style: .gray)
         activityIndicator.frame = CGRect(x: 0, y: 0, width: 46, height: 46)
@@ -310,6 +191,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         close_btn.removeFromSuperview()
         webv.removeFromSuperview()
         webv.load(URLRequest(url: URL(string:"about:blank")!))
+        activityIndicator.stopAnimating()
         tbv.deselectRow(at: selectedIndexPath, animated: true)
         UIView.animate(withDuration: 0.3) {
             self.webv.alpha = 0
