@@ -81,7 +81,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     func getHours(d: DiningPlace, data: [[String: Any]]) -> (String, Bool) {
         let formattedDate = getDate()
         
-        print(d.name!)
+//        print(d.name!)
         
         for day in data {
             if day["date"] as! String == formattedDate {
@@ -94,7 +94,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                     let open = interval["open"]!.split(separator: ":")
                     let close = interval["close"]!.split(separator: ":")
                     if intervals.count == 1 {
-                        print("ONE TIME INTERVAL")
+//                        print("ONE TIME INTERVAL")
                         s += formatTime(open: open, close: close, lb: true)
                     } else {
                         s += formatTime(open: open, close: close, lb: false)
@@ -246,7 +246,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                         self.tbv.reloadData()
                     }
                 } else {
-                    print("JSON is invalid")
+                    print("invalid JSON")
                 }
             }.resume()
     }
